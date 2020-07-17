@@ -1,4 +1,7 @@
-package com.hurynovich;
+package com.hurynovich.factory;
+
+import com.hurynovich.validator.TestObjectClassValidator;
+import com.hurynovich.validator.impl.TestObjectClassValidatorImpl;
 
 public class TestObjectClassValidatorFactory {
 

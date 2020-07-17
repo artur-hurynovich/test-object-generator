@@ -1,4 +1,4 @@
-package com.hurynovich;
+package com.hurynovich.mock_object;
 
 public class MockUserObject {
 

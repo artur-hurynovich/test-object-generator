@@ -1,4 +1,11 @@
-package com.hurynovich;
+package com.hurynovich.generator.impl;
+
+import com.hurynovich.factory.PrimitiveTypeGeneratorFactory;
+import com.hurynovich.generator.PrimitiveTypeGenerator;
+import com.hurynovich.generator.TestObjectGenerator;
+import com.hurynovich.validator.TestObjectClassValidator;
+import com.hurynovich.factory.TestObjectClassValidatorFactory;
+import com.hurynovich.exception.TestObjectGeneratorException;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;

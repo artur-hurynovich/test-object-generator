@@ -1,4 +1,7 @@
-package com.hurynovich;
+package com.hurynovich.generator;
+
+import com.hurynovich.service.impl.GeneralRandomizer;
+import com.hurynovich.service.Randomizer;
 
 import java.io.Serializable;
 

@@ -1,4 +1,4 @@
-package com.hurynovich;
+package com.hurynovich.exception;
 
 public class TestObjectGeneratorException extends RuntimeException {
 

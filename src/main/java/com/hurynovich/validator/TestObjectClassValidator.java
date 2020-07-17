@@ -1,4 +1,4 @@
-package com.hurynovich;
+package com.hurynovich.validator;
 
 public interface TestObjectClassValidator {
 

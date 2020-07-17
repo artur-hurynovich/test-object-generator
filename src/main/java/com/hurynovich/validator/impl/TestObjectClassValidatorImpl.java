@@ -1,4 +1,7 @@
-package com.hurynovich;
+package com.hurynovich.validator.impl;
+
+import com.hurynovich.exception.TestObjectClassValidationException;
+import com.hurynovich.validator.TestObjectClassValidator;
 
 public class TestObjectClassValidatorImpl implements TestObjectClassValidator {
 

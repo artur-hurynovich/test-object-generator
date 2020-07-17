@@ -1,4 +1,4 @@
-package com.hurynovich;
+package com.hurynovich.generator;
 
 import java.io.Serializable;
 

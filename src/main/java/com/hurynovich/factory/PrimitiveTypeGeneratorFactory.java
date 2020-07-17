@@ -1,4 +1,7 @@
-package com.hurynovich;
+package com.hurynovich.factory;
+
+import com.hurynovich.generator.impl.DefaultPrimitiveBooleanTypeGenerator;
+import com.hurynovich.generator.PrimitiveTypeGenerator;
 
 import java.io.Serializable;
 import java.util.HashMap;

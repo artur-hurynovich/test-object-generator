@@ -1,5 +1,7 @@
-package com.hurynovich;
+package com.hurynovich.generator.impl;
 
+import com.hurynovich.mock_object.MockUserObject;
+import com.hurynovich.generator.TestObjectGenerator;
 import org.junit.jupiter.api.Test;
 
 public class GeneralTestObjectGeneratorTest {

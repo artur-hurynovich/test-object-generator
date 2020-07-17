@@ -1,4 +1,4 @@
-package com.hurynovich;
+package com.hurynovich.service;
 
 public interface Randomizer {
 
