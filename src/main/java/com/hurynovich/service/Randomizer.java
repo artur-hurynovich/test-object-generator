@@ -4,4 +4,6 @@ public interface Randomizer {
 
 	boolean randomBooleanValue();
 
+	String randomStringValue(int count);
+
 }

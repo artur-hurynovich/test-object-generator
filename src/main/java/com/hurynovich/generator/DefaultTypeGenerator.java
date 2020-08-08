@@ -2,7 +2,7 @@ package com.hurynovich.generator;
 
 import java.io.Serializable;
 
-public interface PrimitiveTypeGenerator<T extends Serializable> {
+public interface DefaultTypeGenerator<T extends Serializable> {
 
 	T generate();
 

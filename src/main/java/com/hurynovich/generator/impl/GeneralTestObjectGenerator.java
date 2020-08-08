@@ -1,11 +1,14 @@
 package com.hurynovich.generator.impl;
 
-import com.hurynovich.factory.PrimitiveTypeGeneratorFactory;
-import com.hurynovich.generator.PrimitiveTypeGenerator;
+import com.hurynovich.exception.TestObjectGeneratorException;
+import com.hurynovich.factory.DefaultTypeGeneratorFactory;
+import com.hurynovich.factory.TestObjectClassValidatorFactory;
+import com.hurynovich.generator.DefaultTypeGenerator;
 import com.hurynovich.generator.TestObjectGenerator;
 import com.hurynovich.validator.TestObjectClassValidator;
-import com.hurynovich.factory.TestObjectClassValidatorFactory;
-import com.hurynovich.exception.TestObjectGeneratorException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.util.ReflectionUtils;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
