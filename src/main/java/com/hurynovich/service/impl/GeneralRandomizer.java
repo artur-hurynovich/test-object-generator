@@ -1,8 +1,8 @@
 package com.hurynovich.service.impl;
 
 import com.hurynovich.service.Randomizer;
+import org.apache.commons.lang3.RandomStringUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
 public class GeneralRandomizer implements Randomizer {
@@ -18,10 +18,7 @@ public class GeneralRandomizer implements Randomizer {
 
 	@Override
 	public String randomStringValue(final int count) {
-		byte[] byteArray = new byte[count];
-		random.nextBytes(byteArray);
-
-		return new String(byteArray, StandardCharsets.UTF_8);
+		return RandomStringUtils.randomAlphabetic(count);
 	}
 
 }

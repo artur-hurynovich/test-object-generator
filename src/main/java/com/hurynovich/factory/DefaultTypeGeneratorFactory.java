@@ -4,19 +4,20 @@ import com.hurynovich.generator.DefaultTypeGenerator;
 import com.hurynovich.generator.impl.DefaultBooleanTypeGenerator;
 import com.hurynovich.generator.impl.DefaultStringTypeGenerator;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultTypeGeneratorFactory {
 
-	private static final Map<Class<?>, DefaultTypeGenerator<Serializable>> DEFAULT_TYPE_GENERATORS;
+	private static final Map<Class<?>, DefaultTypeGenerator<?>> DEFAULT_TYPE_GENERATORS;
 
 	static {
 		DEFAULT_TYPE_GENERATORS = new HashMap<>();
 
-		DEFAULT_TYPE_GENERATORS.put(boolean.class, new DefaultBooleanTypeGenerator());
-		DEFAULT_TYPE_GENERATORS.put(Boolean.class, new DefaultBooleanTypeGenerator());
+		final DefaultBooleanTypeGenerator defaultBooleanTypeGenerator = new DefaultBooleanTypeGenerator();
+		DEFAULT_TYPE_GENERATORS.put(boolean.class, defaultBooleanTypeGenerator);
+		DEFAULT_TYPE_GENERATORS.put(Boolean.class, defaultBooleanTypeGenerator);
+
 		DEFAULT_TYPE_GENERATORS.put(String.class, new DefaultStringTypeGenerator());
 	}
 
@@ -24,8 +25,13 @@ public class DefaultTypeGeneratorFactory {
 
 	}
 
-	public static DefaultTypeGenerator<Serializable> build(final Class<?> primitiveTypeClass) {
-		return DEFAULT_TYPE_GENERATORS.get(primitiveTypeClass);
+	@SuppressWarnings("unchecked")
+	public static <T> DefaultTypeGenerator<T> build(final Class<T> defaultTypeClass) {
+		return (DefaultTypeGenerator<T>) DEFAULT_TYPE_GENERATORS.get(defaultTypeClass);
+	}
+
+	public static boolean defaultTypeGeneratorExists(final Class<?> defaultTypeClass) {
+		return DEFAULT_TYPE_GENERATORS.containsKey(defaultTypeClass);
 	}
 
 }

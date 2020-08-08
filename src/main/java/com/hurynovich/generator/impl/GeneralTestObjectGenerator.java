@@ -3,14 +3,12 @@ package com.hurynovich.generator.impl;
 import com.hurynovich.exception.TestObjectGeneratorException;
 import com.hurynovich.factory.DefaultTypeGeneratorFactory;
 import com.hurynovich.factory.TestObjectClassValidatorFactory;
-import com.hurynovich.generator.DefaultTypeGenerator;
 import com.hurynovich.generator.TestObjectGenerator;
 import com.hurynovich.validator.TestObjectClassValidator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.util.ReflectionUtils;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -35,17 +33,19 @@ public class GeneralTestObjectGenerator implements TestObjectGenerator {
 	public <T> T generate(final Class<T> objectClass, final Collection<String> ignoreFields) {
 		validator.validate(objectClass);
 
-		// recursive
-		// if objectClass is String or boolean or so on?
-		final T testObject = instantiate(objectClass);
+		if (DefaultTypeGeneratorFactory.defaultTypeGeneratorExists(objectClass)) {
+			return DefaultTypeGeneratorFactory.build(objectClass).generate();
+		} else {
+			final T testObject = instantiate(objectClass);
 
-		ReflectionUtils.doWithFields(objectClass, field -> {
-			if (!ignoreFields.contains(field.getName())) {
-				processSetField(field, testObject);
-			}
-		});
+			ReflectionUtils.doWithFields(objectClass, field -> {
+				if (!ignoreFields.contains(field.getName())) {
+					processSetField(field, testObject, ignoreFields);
+				}
+			});
 
-		return testObject;
+			return testObject;
+		}
 	}
 
 	private <T> T instantiate(final Class<T> objectClass) {
@@ -57,28 +57,27 @@ public class GeneralTestObjectGenerator implements TestObjectGenerator {
 		}
 	}
 
-	private <T> void processSetField(final Field field, final T object) {
+	private <T> void processSetField(final Field field, final T object, final Collection<String> ignoreFields) {
+		final Class<?> objectClass = object.getClass();
+
 		final Class<?> fieldType = field.getType();
 
-		if (fieldType.isPrimitive() || fieldType.equals(String.class)) {
-			final DefaultTypeGenerator<Serializable> defaultTypeGenerator =
-					DefaultTypeGeneratorFactory.build(fieldType);
+		final Method setter = findStandardSetterForField(field, objectClass);
 
-			final Class<?> objectClass = object.getClass();
+		if (setter != null) {
+			final Object fieldValue;
 
-			if (defaultTypeGenerator != null) {
-				final Method setter = findStandardSetterForField(field, objectClass);
-
-				if (setter != null) {
-					ReflectionUtils.invokeMethod(setter, object, defaultTypeGenerator.generate());
-				} else {
-					LOGGER.warn("No standard setter found for field of type '" + fieldType +
-							"' and name '" + field.getName() + "' in class '" + objectClass.getName() + "'");
-				}
+			if (DefaultTypeGeneratorFactory.defaultTypeGeneratorExists(objectClass)) {
+				fieldValue = DefaultTypeGeneratorFactory.build(fieldType).generate();
+			} else {
+				fieldValue = generate(fieldType, ignoreFields);
 			}
-		}
 
-		// array, collection (including map); Generics???
+			ReflectionUtils.invokeMethod(setter, object, fieldValue);
+		} else {
+			LOGGER.warn("No standard setter found for field of type '" + fieldType +
+					"' and name '" + field.getName() + "' in class '" + objectClass.getName() + "'");
+		}
 	}
 
 	private <T> Method findStandardSetterForField(final Field field, final Class<T> clazz) {

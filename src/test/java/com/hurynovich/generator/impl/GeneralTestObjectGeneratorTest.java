@@ -13,6 +13,10 @@ public class GeneralTestObjectGeneratorTest {
 		final MockUserObject mockUserObject = generator.generate(MockUserObject.class);
 
 		System.out.println(mockUserObject.isActive());
+		System.out.println(mockUserObject.getInner().getText());
+
+		final String generate = generator.generate(String.class);
+		System.out.println(generate);
 	}
 
 }
