@@ -2,6 +2,8 @@ package com.hurynovich.model.field_descriptor.impl;
 
 import com.hurynovich.model.field_descriptor.FieldDescriptor;
 
+import java.lang.reflect.Field;
+
 public class GeneralFieldDescriptor implements FieldDescriptor {
 
 	private Class<?> containerObjectClass;
@@ -51,18 +53,22 @@ public class GeneralFieldDescriptor implements FieldDescriptor {
 	}
 
 	@Override
-	public Class<?> getContainerObjectClass() {
-		return containerObjectClass;
-	}
+	public boolean matches(final Field field, final Class<?> containerObjectClass1) {
+		boolean matches = true;
 
-	@Override
-	public Class<?> getFieldClass() {
-		return fieldClass;
-	}
+		if (containerObjectClass != null) {
+			matches = containerObjectClass.equals(containerObjectClass1);
+		}
 
-	@Override
-	public String getFieldName() {
-		return fieldName;
+		if (fieldClass != null) {
+			matches &= fieldClass.equals(field.getType());
+		}
+
+		if (fieldName != null) {
+			matches &= fieldName.equals(field.getName());
+		}
+
+		return matches;
 	}
 
 }

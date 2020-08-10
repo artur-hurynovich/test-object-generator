@@ -1,11 +1,9 @@
 package com.hurynovich.model.field_descriptor;
 
+import java.lang.reflect.Field;
+
 public interface FieldDescriptor {
 
-	Class<?> getContainerObjectClass();
-
-	Class<?> getFieldClass();
-
-	String getFieldName();
+	boolean matches(Field field, Class<?> containerObjectClass);
 
 }

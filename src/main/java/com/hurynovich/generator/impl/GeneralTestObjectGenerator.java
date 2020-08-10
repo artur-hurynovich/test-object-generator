@@ -2,43 +2,84 @@ package com.hurynovich.generator.impl;
 
 import com.hurynovich.exception.TestObjectGeneratorException;
 import com.hurynovich.factory.DefaultTypeGeneratorFactory;
-import com.hurynovich.factory.TestObjectClassValidatorFactory;
+import com.hurynovich.generator.DefaultTypeGenerator;
 import com.hurynovich.generator.TestObjectGenerator;
 import com.hurynovich.model.field_descriptor.FieldDescriptor;
 import com.hurynovich.util.ExtendedReflectionUtils;
-import com.hurynovich.validator.TestObjectClassValidator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class GeneralTestObjectGenerator implements TestObjectGenerator {
 
 	private static final Log LOGGER = LogFactory.getLog(GeneralTestObjectGenerator.class);
 
-	private final TestObjectClassValidator validator = TestObjectClassValidatorFactory.build();
+	private Collection<FieldDescriptor> ignoreFields;
 
-	@Override
-	public <T> T generate(final Class<T> objectClass) {
-		return generate(objectClass, Collections.emptyList());
+	private Map<FieldDescriptor, DefaultTypeGenerator<?>> customTypeGenerators;
+
+	private GeneralTestObjectGenerator() {
+
+	}
+
+	public static class GeneralTestObjectGeneratorBuilder {
+
+		private final GeneralTestObjectGenerator generator;
+
+		public GeneralTestObjectGeneratorBuilder() {
+			generator = new GeneralTestObjectGenerator();
+		}
+
+		public GeneralTestObjectGeneratorBuilder withIgnoreFields(final Collection<FieldDescriptor> ignoreFields) {
+			generator.ignoreFields = ignoreFields;
+
+			return this;
+		}
+
+		public GeneralTestObjectGeneratorBuilder withCustomTypeGenerators(
+				final Map<FieldDescriptor, DefaultTypeGenerator<?>> customTypeGenerators) {
+			generator.customTypeGenerators = customTypeGenerators;
+
+			return this;
+		}
+
+		public GeneralTestObjectGenerator build() {
+			if (generator.ignoreFields == null) {
+				generator.ignoreFields = Collections.emptyList();
+			}
+
+			if (generator.customTypeGenerators == null) {
+				generator.customTypeGenerators = Collections.emptyMap();
+			}
+
+			return generator;
+		}
+
+	}
+
+	public static GeneralTestObjectGeneratorBuilder builder() {
+		return new GeneralTestObjectGeneratorBuilder();
 	}
 
 	@Override
-	public <T> T generate(final Class<T> objectClass, final Collection<FieldDescriptor> ignoreFields) {
-		validator.validate(objectClass);
-
+	public <T> T generate(final Class<T> objectClass) {
 		if (DefaultTypeGeneratorFactory.defaultTypeGeneratorExists(objectClass)) {
 			return DefaultTypeGeneratorFactory.build(objectClass).generate();
 		} else {
 			final T testObject = instantiate(objectClass);
 
-			ExtendedReflectionUtils.doWithFields(objectClass, field -> {
+			ReflectionUtils.doWithFields(objectClass, field -> {
 				if (notIgnoredField(objectClass, field, ignoreFields)) {
-					processSetField(field, testObject, ignoreFields);
+					generateField(field, testObject);
 				}
 			});
 
@@ -48,7 +89,7 @@ public class GeneralTestObjectGenerator implements TestObjectGenerator {
 
 	private <T> T instantiate(final Class<T> objectClass) {
 		try {
-			return ExtendedReflectionUtils.accessibleConstructor(objectClass).newInstance();
+			return ReflectionUtils.accessibleConstructor(objectClass).newInstance();
 		} catch (final NoSuchMethodException e) {
 			throw new TestObjectGeneratorException("No default constructor found for class '" +
 					objectClass + "'", e);
@@ -63,7 +104,7 @@ public class GeneralTestObjectGenerator implements TestObjectGenerator {
 		boolean notIgnoredField = true;
 
 		for (final FieldDescriptor fieldDescriptor : ignoreFields) {
-			if (matchesField(containerObjectClass, field, fieldDescriptor)) {
+			if (fieldDescriptor.matches(field, containerObjectClass)) {
 				notIgnoredField = false;
 
 				break;
@@ -73,29 +114,53 @@ public class GeneralTestObjectGenerator implements TestObjectGenerator {
 		return notIgnoredField;
 	}
 
-	private boolean matchesField(final Class<?> containerObjectClass, final Field field,
-								 final FieldDescriptor fieldDescriptor) {
-		boolean matchesField = true;
+	private <T> void generateField(final Field field, final T object) {
+		final Class<?> objectClass = object.getClass();
 
-		final Class<?> containerObjectClass1 = fieldDescriptor.getContainerObjectClass();
-		if (containerObjectClass1 != null) {
-			matchesField = containerObjectClass.equals(containerObjectClass1);
+		final Class<?> fieldType = field.getType();
+
+		final List<DefaultTypeGenerator<?>> matchingCustomTypeGenerators =
+				findMatchingCustomTypeGenerators(field, objectClass);
+
+		if (matchingCustomTypeGenerators.isEmpty()) {
+			final Object fieldValue;
+
+			if (DefaultTypeGeneratorFactory.defaultTypeGeneratorExists(objectClass)) {
+				fieldValue = DefaultTypeGeneratorFactory.build(fieldType).generate();
+			} else {
+				fieldValue = generate(fieldType);
+			}
+
+			setFieldValue(field, object, fieldValue);
+		} else if (matchingCustomTypeGenerators.size() == 1) {
+			final DefaultTypeGenerator<?> defaultTypeGenerator = matchingCustomTypeGenerators.iterator().next();
+
+			final Object generatedFieldValue = defaultTypeGenerator.generate();
+
+			final Class<?> generatedFieldValueClass = generatedFieldValue.getClass();
+
+			if (generatedFieldValueClass.equals(fieldType)) {
+				setFieldValue(field, object, generatedFieldValue);
+			} else {
+				throw new TestObjectGeneratorException("'" + defaultTypeGenerator.getClass().getName() + "' " +
+						"is not a valid DefaultTypeGenerator implementation " +
+						"for field of type '" + fieldType.getName() + "'");
+			}
+		} else {
+			throw new TestObjectGeneratorException("More than one DefaultTypeGenerator implementation found " +
+					"for field with name '" + field.getName() + "' of type '" + fieldType.getName() + "' " +
+					"in class '" + objectClass.getName() + "'");
 		}
-
-		final Class<?> fieldClass = fieldDescriptor.getFieldClass();
-		if (fieldClass != null) {
-			matchesField &= field.getType().equals(fieldClass);
-		}
-
-		final String fieldName = fieldDescriptor.getFieldName();
-		if (fieldName != null) {
-			matchesField &= field.getName().equals(fieldName);
-		}
-
-		return matchesField;
 	}
 
-	private <T> void processSetField(final Field field, final T object, final Collection<FieldDescriptor> ignoreFields) {
+	private List<DefaultTypeGenerator<?>> findMatchingCustomTypeGenerators(final Field field, final Class<?> containerObjectClass) {
+		return customTypeGenerators.entrySet().stream().
+				filter(entry -> entry.getKey().matches(field, containerObjectClass)).
+				map(Map.Entry::getValue).
+				collect(Collectors.toList());
+	}
+
+	private <T> void setFieldValue(final Field field, final Object object, final T fieldValue) {
 		final Class<?> objectClass = object.getClass();
 
 		final Class<?> fieldType = field.getType();
@@ -103,20 +168,11 @@ public class GeneralTestObjectGenerator implements TestObjectGenerator {
 		final Method setter = ExtendedReflectionUtils.findStandardSetterForField(field, objectClass);
 
 		if (setter != null) {
-			final Object fieldValue;
-
-			if (DefaultTypeGeneratorFactory.defaultTypeGeneratorExists(objectClass)) {
-				fieldValue = DefaultTypeGeneratorFactory.build(fieldType).generate();
-			} else {
-				fieldValue = generate(fieldType, ignoreFields);
-			}
-
-			ExtendedReflectionUtils.invokeMethod(setter, object, fieldValue);
+			ReflectionUtils.invokeMethod(setter, object, fieldValue);
 		} else {
 			LOGGER.warn("No standard setter found for field of type '" + fieldType +
 					"' and name '" + field.getName() + "' in class '" + objectClass.getName() + "'");
 		}
 	}
-
 
 }
