@@ -2,8 +2,10 @@ package com.hurynovich.generator.impl;
 
 import com.hurynovich.exception.TestObjectGeneratorException;
 import com.hurynovich.factory.DefaultTypeGeneratorFactory;
+import com.hurynovich.factory.TestObjectGeneratorHelperFactory;
 import com.hurynovich.generator.DefaultTypeGenerator;
 import com.hurynovich.generator.TestObjectGenerator;
+import com.hurynovich.generator.TestObjectGeneratorHelper;
 import com.hurynovich.model.field_descriptor.FieldDescriptor;
 import com.hurynovich.util.ExtendedReflectionUtils;
 import org.apache.commons.logging.Log;
@@ -22,6 +24,8 @@ import java.util.stream.Collectors;
 public class GeneralTestObjectGenerator implements TestObjectGenerator {
 
 	private static final Log LOGGER = LogFactory.getLog(GeneralTestObjectGenerator.class);
+
+	private final TestObjectGeneratorHelper helper = TestObjectGeneratorHelperFactory.build();
 
 	private Collection<FieldDescriptor> ignoreFields;
 
@@ -74,7 +78,9 @@ public class GeneralTestObjectGenerator implements TestObjectGenerator {
 	public <T> T generate(final Class<T> objectClass) {
 		// TODO arrays, collections
 
-		if (DefaultTypeGeneratorFactory.defaultTypeGeneratorExists(objectClass)) {
+		if (objectClass.isEnum()) {
+			return helper.generateRandomEnumValue(objectClass);
+		} else if (DefaultTypeGeneratorFactory.defaultTypeGeneratorExists(objectClass)) {
 			return DefaultTypeGeneratorFactory.build(objectClass).generate();
 		} else {
 			final T testObject = instantiate(objectClass);

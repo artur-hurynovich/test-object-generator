@@ -23,6 +23,10 @@ public class GeneralTestObjectGeneratorTest {
 
 	private TestObjectGenerator generator;
 
+	private enum MockEnum {
+		ONE, TWO, THREE
+	}
+
 	@BeforeEach
 	public void init() {
 		ignoredFieldDescriptor = GeneralFieldDescriptor.builder().
@@ -54,6 +58,8 @@ public class GeneralTestObjectGeneratorTest {
 		System.out.println(mockUserObject.getInner().getText());
 		System.out.println(mockUserObject.getInner().getIgnoredText());
 		System.out.println(mockUserObject.getInner().getCustomText());
+
+		System.out.println(generator.generate(MockEnum.class));
 	}
 
 }
