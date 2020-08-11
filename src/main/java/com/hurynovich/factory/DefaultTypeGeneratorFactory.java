@@ -1,16 +1,16 @@
 package com.hurynovich.factory;
 
-import com.hurynovich.generator.DefaultTypeGenerator;
-import com.hurynovich.generator.impl.DefaultBigDecimalTypeGenerator;
-import com.hurynovich.generator.impl.DefaultBooleanTypeGenerator;
-import com.hurynovich.generator.impl.DefaultByteTypeGenerator;
-import com.hurynovich.generator.impl.DefaultCharTypeGenerator;
-import com.hurynovich.generator.impl.DefaultDoubleTypeGenerator;
-import com.hurynovich.generator.impl.DefaultFloatTypeGenerator;
-import com.hurynovich.generator.impl.DefaultIntegerTypeGenerator;
-import com.hurynovich.generator.impl.DefaultLongTypeGenerator;
-import com.hurynovich.generator.impl.DefaultShortTypeGenerator;
-import com.hurynovich.generator.impl.DefaultStringTypeGenerator;
+import com.hurynovich.generator.default_type_generator.DefaultTypeGenerator;
+import com.hurynovich.generator.default_type_generator.impl.DefaultBigDecimalTypeGenerator;
+import com.hurynovich.generator.default_type_generator.impl.DefaultBooleanTypeGenerator;
+import com.hurynovich.generator.default_type_generator.impl.DefaultByteTypeGenerator;
+import com.hurynovich.generator.default_type_generator.impl.DefaultCharTypeGenerator;
+import com.hurynovich.generator.default_type_generator.impl.DefaultDoubleTypeGenerator;
+import com.hurynovich.generator.default_type_generator.impl.DefaultFloatTypeGenerator;
+import com.hurynovich.generator.default_type_generator.impl.DefaultIntegerTypeGenerator;
+import com.hurynovich.generator.default_type_generator.impl.DefaultLongTypeGenerator;
+import com.hurynovich.generator.default_type_generator.impl.DefaultShortTypeGenerator;
+import com.hurynovich.generator.default_type_generator.impl.DefaultStringTypeGenerator;
 
 import java.math.BigDecimal;
 import java.util.HashMap;

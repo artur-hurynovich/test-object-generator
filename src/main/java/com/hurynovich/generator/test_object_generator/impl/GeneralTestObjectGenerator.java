@@ -1,12 +1,13 @@
-package com.hurynovich.generator.impl;
+package com.hurynovich.generator.test_object_generator.impl;
 
 import com.hurynovich.exception.TestObjectGeneratorException;
 import com.hurynovich.factory.DefaultTypeGeneratorFactory;
 import com.hurynovich.factory.TestObjectGeneratorHelperFactory;
-import com.hurynovich.generator.DefaultTypeGenerator;
-import com.hurynovich.generator.TestObjectGenerator;
-import com.hurynovich.generator.TestObjectGeneratorHelper;
+import com.hurynovich.generator.default_type_generator.DefaultTypeGenerator;
+import com.hurynovich.generator.test_object_generator.TestObjectGenerator;
+import com.hurynovich.service.test_object_generator_helper.TestObjectGeneratorHelper;
 import com.hurynovich.model.field_descriptor.FieldDescriptor;
+import com.hurynovich.model.object_container_descriptor.ContainerDescriptor;
 import com.hurynovich.util.ExtendedReflectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,6 +31,8 @@ public class GeneralTestObjectGenerator implements TestObjectGenerator {
 	private Collection<FieldDescriptor> ignoreFields;
 
 	private Map<FieldDescriptor, DefaultTypeGenerator<?>> customTypeGenerators;
+
+	private Map<FieldDescriptor, ContainerDescriptor> containerDescriptors;
 
 	private GeneralTestObjectGenerator() {
 
@@ -56,6 +59,12 @@ public class GeneralTestObjectGenerator implements TestObjectGenerator {
 			return this;
 		}
 
+		public GeneralTestObjectGeneratorBuilder withContainerDescriptors(final Map<FieldDescriptor, ContainerDescriptor> containerDescriptors) {
+			generator.containerDescriptors = containerDescriptors;
+
+			return this;
+		}
+
 		public GeneralTestObjectGenerator build() {
 			if (generator.ignoreFields == null) {
 				generator.ignoreFields = Collections.emptyList();
@@ -63,6 +72,10 @@ public class GeneralTestObjectGenerator implements TestObjectGenerator {
 
 			if (generator.customTypeGenerators == null) {
 				generator.customTypeGenerators = Collections.emptyMap();
+			}
+
+			if (generator.containerDescriptors == null) {
+				generator.containerDescriptors = Collections.emptyMap();
 			}
 
 			return generator;
@@ -76,8 +89,6 @@ public class GeneralTestObjectGenerator implements TestObjectGenerator {
 
 	@Override
 	public <T> T generate(final Class<T> objectClass) {
-		// TODO arrays, collections
-
 		if (objectClass.isEnum()) {
 			return helper.generateRandomEnumValue(objectClass);
 		} else if (DefaultTypeGeneratorFactory.defaultTypeGeneratorExists(objectClass)) {
@@ -136,7 +147,30 @@ public class GeneralTestObjectGenerator implements TestObjectGenerator {
 			if (DefaultTypeGeneratorFactory.defaultTypeGeneratorExists(objectClass)) {
 				fieldValue = DefaultTypeGeneratorFactory.build(fieldType).generate();
 			} else {
-				fieldValue = generate(fieldType);
+				if (fieldType.isArray() || fieldType.isAssignableFrom(Collection.class) || fieldType.isAssignableFrom(Map.class)) {
+					final List<ContainerDescriptor> matchingContainerDescriptors =
+							findMatchingContainerDescriptors(field, objectClass);
+
+					if (matchingContainerDescriptors.isEmpty()) {
+						fieldValue = null;
+
+						LOGGER.warn("No ContainerDescriptor implementation found " +
+								"for field with name '" + field.getName() + "' of type '" + fieldType.getName() + "' " +
+								"in class '" + objectClass.getName() + "'. Field value will be set to null");
+					} else if (matchingContainerDescriptors.size() == 1) {
+						final ContainerDescriptor matchingContainerDescriptor = matchingContainerDescriptors.iterator().next();
+
+						fieldValue = helper.buildAndFillContainer(matchingContainerDescriptor, this::generate);
+					} else {
+						fieldValue = null;
+
+						LOGGER.warn("More than one ContainerDescriptor implementation found " +
+								"for field with name '" + field.getName() + "' of type '" + fieldType.getName() + "' " +
+								"in class '" + objectClass.getName() + "'. Field value will be set to null");
+					}
+				} else {
+					fieldValue = generate(fieldType);
+				}
 			}
 
 			setFieldValue(field, object, fieldValue);
@@ -155,15 +189,24 @@ public class GeneralTestObjectGenerator implements TestObjectGenerator {
 						"for field of type '" + fieldType.getName() + "'");
 			}
 		} else {
-			throw new TestObjectGeneratorException("More than one DefaultTypeGenerator implementation found " +
+			setFieldValue(field, object, null);
+
+			LOGGER.warn("More than one DefaultTypeGenerator implementation found " +
 					"for field with name '" + field.getName() + "' of type '" + fieldType.getName() + "' " +
-					"in class '" + objectClass.getName() + "'");
+					"in class '" + objectClass.getName() + "'. Field value will be set to null");
 		}
 	}
 
 	private List<DefaultTypeGenerator<?>> findMatchingCustomTypeGenerators(final Field field, final Class<?> containerObjectClass) {
 		return customTypeGenerators.entrySet().stream().
 				filter(entry -> entry.getKey().matches(field, containerObjectClass)).
+				map(Map.Entry::getValue).
+				collect(Collectors.toList());
+	}
+
+	private List<ContainerDescriptor> findMatchingContainerDescriptors(final Field field, final Class<?> containerObjectClass) {
+		return containerDescriptors.entrySet().stream().
+				filter(entry -> entry.getKey().matches(field, containerObjectClass) && entry.getValue().matches(containerObjectClass)).
 				map(Map.Entry::getValue).
 				collect(Collectors.toList());
 	}

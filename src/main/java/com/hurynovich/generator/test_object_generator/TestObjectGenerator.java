@@ -1,4 +1,4 @@
-package com.hurynovich.generator;
+package com.hurynovich.generator.test_object_generator;
 
 public interface TestObjectGenerator {
 

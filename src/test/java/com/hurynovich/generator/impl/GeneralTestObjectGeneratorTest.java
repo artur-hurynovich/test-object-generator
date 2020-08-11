@@ -1,7 +1,8 @@
 package com.hurynovich.generator.impl;
 
-import com.hurynovich.generator.DefaultTypeGenerator;
-import com.hurynovich.generator.TestObjectGenerator;
+import com.hurynovich.generator.default_type_generator.DefaultTypeGenerator;
+import com.hurynovich.generator.test_object_generator.TestObjectGenerator;
+import com.hurynovich.generator.test_object_generator.impl.GeneralTestObjectGenerator;
 import com.hurynovich.mock_object.MockInnerObject;
 import com.hurynovich.mock_object.MockUserObject;
 import com.hurynovich.model.field_descriptor.FieldDescriptor;

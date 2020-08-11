@@ -1,7 +1,7 @@
 package com.hurynovich.factory;
 
-import com.hurynovich.generator.TestObjectGeneratorHelper;
-import com.hurynovich.generator.impl.GeneralTestObjectGeneratorHelper;
+import com.hurynovich.service.test_object_generator_helper.TestObjectGeneratorHelper;
+import com.hurynovich.service.test_object_generator_helper.impl.GeneralTestObjectGeneratorHelper;
 
 public class TestObjectGeneratorHelperFactory {
 

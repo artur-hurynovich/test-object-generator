@@ -1,6 +1,6 @@
-package com.hurynovich.service.impl;
+package com.hurynovich.service.randomizer.impl;
 
-import com.hurynovich.service.Randomizer;
+import com.hurynovich.service.randomizer.Randomizer;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import java.util.Random;
