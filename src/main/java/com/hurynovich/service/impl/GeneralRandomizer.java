@@ -17,8 +17,33 @@ public class GeneralRandomizer implements Randomizer {
 	}
 
 	@Override
+	public int randomIntegerValue() {
+		return random.nextInt();
+	}
+
+	@Override
+	public long randomLongValue() {
+		return random.nextLong();
+	}
+
+	@Override
+	public float randomFloatValue() {
+		return random.nextFloat();
+	}
+
+	@Override
+	public double randomDoubleValue() {
+		return random.nextDouble();
+	}
+
+	@Override
+	public char randomCharValue() {
+		return RandomStringUtils.randomAlphanumeric(1).charAt(0);
+	}
+
+	@Override
 	public String randomStringValue(final int count) {
-		return RandomStringUtils.randomAlphabetic(count);
+		return RandomStringUtils.randomAlphanumeric(count);
 	}
 
 }

@@ -6,6 +6,8 @@ public class MockInnerObject {
 
 	private String ignoredText;
 
+	private String customText;
+
 	public String getText() {
 		return text;
 	}
@@ -20,6 +22,14 @@ public class MockInnerObject {
 
 	public void setIgnoredText(final String ignoredText) {
 		this.ignoredText = ignoredText;
+	}
+
+	public String getCustomText() {
+		return customText;
+	}
+
+	public void setCustomText(final String customText) {
+		this.customText = customText;
 	}
 
 }

@@ -72,6 +72,8 @@ public class GeneralTestObjectGenerator implements TestObjectGenerator {
 
 	@Override
 	public <T> T generate(final Class<T> objectClass) {
+		// TODO arrays, collections
+
 		if (DefaultTypeGeneratorFactory.defaultTypeGeneratorExists(objectClass)) {
 			return DefaultTypeGeneratorFactory.build(objectClass).generate();
 		} else {
@@ -114,7 +116,7 @@ public class GeneralTestObjectGenerator implements TestObjectGenerator {
 		return notIgnoredField;
 	}
 
-	private <T> void generateField(final Field field, final T object) {
+	private void generateField(final Field field, final Object object) {
 		final Class<?> objectClass = object.getClass();
 
 		final Class<?> fieldType = field.getType();
@@ -160,7 +162,7 @@ public class GeneralTestObjectGenerator implements TestObjectGenerator {
 				collect(Collectors.toList());
 	}
 
-	private <T> void setFieldValue(final Field field, final Object object, final T fieldValue) {
+	private void setFieldValue(final Field field, final Object object, final Object fieldValue) {
 		final Class<?> objectClass = object.getClass();
 
 		final Class<?> fieldType = field.getType();

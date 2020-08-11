@@ -1,25 +1,50 @@
 package com.hurynovich.generator.impl;
 
+import com.hurynovich.generator.DefaultTypeGenerator;
 import com.hurynovich.generator.TestObjectGenerator;
 import com.hurynovich.mock_object.MockInnerObject;
 import com.hurynovich.mock_object.MockUserObject;
+import com.hurynovich.model.field_descriptor.FieldDescriptor;
 import com.hurynovich.model.field_descriptor.impl.GeneralFieldDescriptor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GeneralTestObjectGeneratorTest {
 
-	private final GeneralFieldDescriptor fieldDescriptor = GeneralFieldDescriptor.builder().
-			withContainerObjectClass(MockInnerObject.class).
-			withFieldClass(String.class).
-			withFieldName("ignoredText").
-			build();
+	private final Map<FieldDescriptor, DefaultTypeGenerator<?>> customTypeGenerators = new HashMap<>();
 
-	private final TestObjectGenerator generator = GeneralTestObjectGenerator.
-			builder().
-			withIgnoreFields(Collections.singletonList(fieldDescriptor)).
-			build();
+	private GeneralFieldDescriptor ignoredFieldDescriptor;
+
+	private GeneralFieldDescriptor customFieldDescriptor;
+
+	private TestObjectGenerator generator;
+
+	@BeforeEach
+	public void init() {
+		ignoredFieldDescriptor = GeneralFieldDescriptor.builder().
+				withContainerObjectClass(MockInnerObject.class).
+				withFieldClass(String.class).
+				withFieldName("ignoredText").
+				build();
+
+		customFieldDescriptor = GeneralFieldDescriptor.builder().
+				withContainerObjectClass(MockInnerObject.class).
+				withFieldClass(String.class).
+				withFieldName("customText").
+				build();
+
+		customTypeGenerators.put(customFieldDescriptor, () -> "CUSTOM");
+
+		generator = GeneralTestObjectGenerator.
+				builder().
+				withIgnoreFields(Collections.singletonList(ignoredFieldDescriptor)).
+				withCustomTypeGenerators(customTypeGenerators).
+				build();
+	}
 
 	@Test
 	public void test() {
@@ -28,9 +53,7 @@ public class GeneralTestObjectGeneratorTest {
 		System.out.println(mockUserObject.isActive());
 		System.out.println(mockUserObject.getInner().getText());
 		System.out.println(mockUserObject.getInner().getIgnoredText());
-
-		final String generate = generator.generate(String.class);
-		System.out.println(generate);
+		System.out.println(mockUserObject.getInner().getCustomText());
 	}
 
 }
